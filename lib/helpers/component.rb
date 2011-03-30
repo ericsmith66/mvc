@@ -33,5 +33,15 @@ module ExtJS::Helpers
       @onready_queue = [] if @onready_queue.nil?
       "<script>\nExt.onReady(function() {\n\t#{@onready_queue.collect {|cmp| (cmp.kind_of?(ExtJS::Component)) ? cmp.render : cmp}.join("\n\t")}\n });\n</script>"
     end
+
+    def extjs_add_viewport(*params)
+
+         @onready_queue = [] if @onready_queue.nil?
+         params.each do |cmp|
+           @onready_queue.insert(0,cmp)
+
+       end
+    end
+   
   end
 end

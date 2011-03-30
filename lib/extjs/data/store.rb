@@ -23,8 +23,8 @@ module ExtJS::Data
       @config.merge!(reader)
       @config.merge!(proxy)
       
-      @config["baseParams"] = {} if @config["baseParams"].nil?
-      @config["baseParams"].update("fieldset" => @fieldset)
+      @config[:baseParams] = {} if @config[:baseParams].nil?
+      @config[:baseParams].update("fieldset" => @fieldset)
       
       @config["format"] = @format
 
