@@ -5,13 +5,31 @@ module ExtJS::Data
   class Store
     attr_accessor :id, :format, :type, :controller, :model
 
+    PREDEFINED_CONFIG =HashWithIndifferentAccess.new(:default=>
+
+												        { :xtype=>"jsonstore",
+												          :autoLoad => true,
+												          :autoSave => true,
+												          :restful=>true,
+                                  :writer=> "new Ext.data.JsonWriter({'encode':false})",
+												          :api=>{
+												              :create=>"create",
+												              :update=>"update",
+												              :read=>"load",
+												              :destroy=>"destroy"
+												          }
+												      })
     def initialize(*params)
       options = params.extract_options!
       
-      @config     = options[:config] || {}
+
+      @config     = options[:config] || PREDEFINED_CONFIG[:default].dup
       @format     = options[:format] || 'json'
+      @base_params = options[:base_params]
+      @fields     = options[:fields]
       @fieldset   = options[:fieldset] || :default
       @schema     = options[:schema]
+      @controller = options[:controller]
       @proxy      = options[:proxy] || 'http'
       @writer     = options[:writer]
       @type       = (options[:type].nil?) ? @proxy === 'direct' ? 'Ext.data.DirectStore' : "Ext.data.#{@format.capitalize}Store" : options[:type] 
@@ -19,11 +37,16 @@ module ExtJS::Data
       @controller = self.class.get_controller(options[:controller])
       @model      = self.class.get_model(options[:controller], options[:model])
 
+      @schema = @model.extjs_record(:fields=>@fields) if @fields && !@schema
+
+
+
       # Merge Reader/Proxy config
       @config.merge!(reader)
       @config.merge!(proxy)
       
-      @config[:baseParams] = {} if @config[:baseParams].nil?
+
+      @config[:baseParams] = @base_params || {} if @config[:baseParams].nil?
       @config[:baseParams].update("fieldset" => @fieldset)
       
       @config["format"] = @format
@@ -70,6 +93,10 @@ module ExtJS::Data
       end
     end
     
+    def to_h
+      @config
+    end
+
 private
 
     def self.get_controller(name)
@@ -123,9 +150,13 @@ private
         "successProperty" => @controller.extjs_success_property,
         "root" => @controller.extjs_root,
         "messageProperty" => @controller.extjs_message_property
-      }.merge(@schema || @model.extjs_record(@fieldset))
+      }.merge(@schema || get_fields)
     end
     
-    
+    def get_fields
+      @model.extjs_record(@fieldset)
+    end
+
+
   end
 end

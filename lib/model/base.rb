@@ -148,8 +148,11 @@ module ExtJS
 
           field = Marshal.load(Marshal.dump(field)) # making a deep copy
           
-          if col = columns[field[:name]] # <-- column on this model                
-            rs << self.extjs_field(field, col)      
+          if  field[:eval_method] # We are going to eval the later in to_record
+            field[:name]=field[:name].to_s
+            rs << field
+          elsif col = columns[field[:name]] # <-- column on this model
+            rs << self.extjs_field(field, col)
           elsif assn = associations[field[:name]]
             # skip this association if we already visited it
             # otherwise we could end up in a cyclic reference

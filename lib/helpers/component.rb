@@ -26,12 +26,32 @@ module ExtJS::Helpers
       end
     end
 
+    def extjs_add_partial(*params,options={:before_onready=>true})
+     if options[:before_onready]
+      @before_onready_queue = [] if @before_onready_queue.nil?
+      params.each do |cmp|
+         @before_onready_queue << cmp
+      end
+      else
+        @after_onready_queue = [] if @after_onready_queue.nil?
+              params.each do |cmp|
+                 @after_onready_queue << cmp
+              end
+
+      end
+
+
+    end
+
     ##
     # Empties the on_ready queue.  Renders within <script></script> tags
     #
     def extjs_render
       @onready_queue = [] if @onready_queue.nil?
-      "<script>\nExt.onReady(function() {\n\t#{@onready_queue.collect {|cmp| (cmp.kind_of?(ExtJS::Component)) ? cmp.render : cmp}.join("\n\t")}\n });\n</script>"
+      before_html = @before_onready_queue ? @before_onready_queue.join(' ') : ""
+      after_html = @after_onready_queue ? @after_onready_queue.join(' ') : ""
+
+      "#{before_html}<script>\nExt.onReady(function() {\n\t#{@onready_queue.collect {|cmp| (cmp.kind_of?(ExtJS::Component)) ? cmp.render : cmp}.join("\n\t")}\n });\n</script>#{after_html}"
     end
 
     def extjs_add_viewport(*params)
